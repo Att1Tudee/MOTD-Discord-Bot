@@ -4,7 +4,9 @@ from discord.ext import commands
 from dotenv import dotenv_values
 
 env_vars = dotenv_values('.env')
-client = motor.AsyncIOMotorClient(env_vars['MONGODB'])
+token = env_vars.get('TOKEN')
+mongodb = env_vars.get('MONGODB')
+client = motor.AsyncIOMotorClient(mongodb)
 db = client["data"]
 
 class Botpresence(commands.Cog):

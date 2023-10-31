@@ -6,8 +6,9 @@ from dotenv import dotenv_values
 from cogs.embeds import Embeds
 
 env_vars = dotenv_values('.env')
-
-client = motor.AsyncIOMotorClient(env_vars['MONGODB'])
+token = env_vars.get('TOKEN')
+mongodb = env_vars.get('MONGODB')
+client = motor.AsyncIOMotorClient(mongodb)
 db = client["data"]
 class Dbcmds(commands.Cog):
 

@@ -8,9 +8,8 @@ import motor.motor_asyncio as motor
 from dotenv import dotenv_values
 
 env_vars = dotenv_values('.env')
-
-token = env_vars['TOKEN']
-mongodb = env_vars['MONGODB']
+token = env_vars.get('TOKEN', '')
+mongodb = env_vars.get('MONGODB')
 client = motor.AsyncIOMotorClient(mongodb)
 
 class Main(commands.Bot):

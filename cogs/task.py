@@ -7,9 +7,9 @@ from cogs.embeds import Embeds
 
 # Load environment variables from .env file
 env_vars = dotenv_values('.env')
-
-# Create a MongoDB client
-client = motor.AsyncIOMotorClient(env_vars['MONGODB'])
+token = env_vars.get('TOKEN')
+mongodb = env_vars.get('MONGODB')
+client = motor.AsyncIOMotorClient(mongodb)
 db = client["data"]
 
 class Task(commands.Cog):
