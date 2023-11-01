@@ -134,7 +134,7 @@ class Dbcmds(commands.Cog):
     @commands.check(lambda ctx: Dbcmds.check_channel_id(ctx))
     async def viewutctime(self, ctx):
         x = datetime.datetime.utcnow()
-        y = (x.strftime("%H:%M:%S"))
+        y = (x.strftime("%H:%M"))
         embed= Embeds.emsg(f"\nCurrent time in UTC is \n{y}\n")
         await ctx.send(embed=embed)
         
