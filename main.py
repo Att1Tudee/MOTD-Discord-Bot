@@ -3,24 +3,27 @@ import discord
 import os
 import traceback
 import sys
+import logging
 from discord.ext import commands
 import motor.motor_asyncio as motor
-from dotenv import dotenv_values
+from environs import Env
+#TODO structure to load only necessary modules
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
 
-env_vars = dotenv_values('.env')
-token = env_vars.get('TOKEN', '')
-mongodb = env_vars.get('MONGODB')
+env = Env()
+env.read_env()
+
+token = env.str('TOKEN', default='')
+mongodb = env.str('MONGODB')
 client = motor.AsyncIOMotorClient(mongodb)
 
 class Main(commands.Bot):
     def __init__(self, command_prefix):
         super().__init__(command_prefix)
         
-
-    ######################
-    # Main error handler #
-    ######################
-    
+   
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             await ctx.author.send("This command can only be used in the target channel.")
@@ -38,9 +41,8 @@ class Main(commands.Bot):
             except discord.HTTPException:
                 pass
         else:
-            # All other Errors not returned come here. And we can just print the default TraceBack.
-            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
-            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)    
+            # All other Errors not returned come here.
+            logger.error('Ignoring exception in command {}:'.format(ctx.command), exc_info=error)
 
 
 
@@ -57,18 +59,18 @@ async def clear(ctx, amount: int):
 @commands.has_permissions(administrator=True)
 async def load(ctx, extension):
     bot.load_extension(f'cogs.{extension}')
-    print('Loaded cog')
+    logger.info('Loaded cog')
 
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def unload(ctx, extension):
-    print('Unloaded cog')
+    logger.info('Unloaded cog')
     bot.unload_extension(f'cogs.{extension}')
 
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def re(ctx, extension):
-    print('Reloaded cog')
+    logger.info('Reloaded cog')
     bot.unload_extension(f'cogs.{extension}')
     bot.load_extension(f'cogs.{extension}')
 

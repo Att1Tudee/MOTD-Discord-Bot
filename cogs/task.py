@@ -2,13 +2,17 @@ import datetime
 import random
 import motor.motor_asyncio as motor
 from discord.ext import commands, tasks
-from dotenv import dotenv_values
 from cogs.embeds import Embeds
+from environs import Env
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('task')
+logger.setLevel(logging.INFO)
+env = Env()
+env.read_env()
 
-# Load environment variables from .env file
-env_vars = dotenv_values('.env')
-token = env_vars.get('TOKEN')
-mongodb = env_vars.get('MONGODB')
+token = env.str('TOKEN', default='')
+mongodb = env.str('MONGODB')
 client = motor.AsyncIOMotorClient(mongodb)
 db = client["data"]
 
@@ -22,22 +26,23 @@ class Task(commands.Cog):
 
     @tasks.loop(seconds=60)  # Check every 60 seconds
     async def posting_task(self):
+        logger.info("!")
         current_time = datetime.datetime.utcnow().strftime("%H:%M")
-        
         # Get the list of collections (guild IDs) in the database
         guildlist = await db.list_collection_names()
         
+
         # Iterate over each guild
         for guild_id in guildlist:
             collection = db.get_collection(guild_id)
-            
             # Fetch the documents in the collection
             async for document in collection.find():
                 channel_id = document.get("channel_id")
                 posting_time = document.get("posting_time_utc")
-                
+            
                 # Check if channel ID and posting time are present and match the current time
                 if channel_id and posting_time and posting_time == current_time:
+                    logger.info(current_time)
                     guild = self.bot.get_guild(int(guild_id))
                     channel = guild.get_channel(int(channel_id))
                     
@@ -76,15 +81,15 @@ class Task(commands.Cog):
                     # Send the random line as an embedded message to the channel
                     await channel.send(embed=Embeds.emsg(f"\n{random_line}\n"))
                 else:
-                    await channel.send(embed=Embeds.emsg(f"\nNo new posts found.\n"))
+                    random.shuffle(post_lines)                    
             else:
-                await channel.send(embed=Embeds.emsg(f"\nNot enough posts available.\n"))                
+                random.shuffle(post_lines)
         else:
             await channel.send(embed=Embeds.emsg(f"\nNo posts found.\n"))   
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('Task is online.')         
+        logger.info('Task is online.')         
 
 def setup(bot):
     bot.add_cog(Task(bot))

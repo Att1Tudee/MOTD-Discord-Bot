@@ -93,3 +93,5 @@ dndlisteningto epic music
 ```
 _gives bot a Do Not Disturb status(red dot) with message Listening To epic music_
 
+
+from pictotxt change image_path necessarily depending on what you do, develop or just run bot

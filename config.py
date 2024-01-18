@@ -1,10 +1,11 @@
-from dotenv import dotenv_values
 import motor.motor_asyncio as motor
+from environs import Env
 
-env_vars = dotenv_values('.env')
+env = Env()
+env.read_env()
 
-token = env_vars['TOKEN']
-mongodb = env_vars['MONGODB']
+token = env.str('TOKEN', default='')
+mongodb = env.str('MONGODB')
 
 client = motor.AsyncIOMotorClient(env_vars['MONGODB'])
 db = client["data"]

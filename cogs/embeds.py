@@ -1,6 +1,9 @@
 import discord
 from discord.ext import commands
-
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('embeds')
+logger.setLevel(logging.INFO)
 class Embeds(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -46,7 +49,7 @@ class Embeds(commands.Cog):
         return embed
     @commands.Cog.listener()
     async def on_ready(self):
-        print('Embeds is online.')
+        logger.info('Embeds is online.')
 
 def setup(bot):
     bot.add_cog(Embeds(bot))

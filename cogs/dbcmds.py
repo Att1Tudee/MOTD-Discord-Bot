@@ -1,13 +1,19 @@
 import random
 import datetime
 import motor.motor_asyncio as motor
+import logging
 from discord.ext import commands
-from dotenv import dotenv_values
 from cogs.embeds import Embeds
+from environs import Env
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('databasecommands')
+logger.setLevel(logging.INFO)
 
-env_vars = dotenv_values('.env')
-token = env_vars.get('TOKEN')
-mongodb = env_vars.get('MONGODB')
+env = Env()
+env.read_env()
+
+token = env.str('TOKEN', default='')
+mongodb = env.str('MONGODB')
 client = motor.AsyncIOMotorClient(mongodb)
 db = client["data"]
 class Dbcmds(commands.Cog):
@@ -26,7 +32,7 @@ class Dbcmds(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('Dbcmds is online.')
+        logger.info('Dbcmds is online.')
 
     # Set the channel to use
     
@@ -134,7 +140,7 @@ class Dbcmds(commands.Cog):
     @commands.check(lambda ctx: Dbcmds.check_channel_id(ctx))
     async def viewutctime(self, ctx):
         x = datetime.datetime.utcnow()
-        y = (x.strftime("%H:%M"))
+        y = (x.strftime("%H:%M:%S"))
         embed= Embeds.emsg(f"\nCurrent time in UTC is \n{y}\n")
         await ctx.send(embed=embed)
         
@@ -154,8 +160,9 @@ class Dbcmds(commands.Cog):
             if existing_entry:
                 if "posting_time_utc" in existing_entry:
                     result = await collection.find_one({"channel_id": request_channel, "posting_time_utc": {"$exists": True}})
+                    print(result)
                     if result:
-                        embed =  Embeds.emsg("\nCurrent posting time in UTC is:\n{result['posting_time_utc']}\n")
+                        embed = Embeds.emsg(f"\nCurrent posting time in UTC is:\n{result['posting_time_utc']}\n")
                         await ctx.send(embed=embed)
                     else:
                         embed =  Embeds.emsg("\nPosting_time_utc field found, but no document with the field exists.\n")
@@ -175,6 +182,7 @@ class Dbcmds(commands.Cog):
         request_channel = ctx.channel.id
         collection = db.get_collection(request_guild)        
         guildlist = await db.list_collection_names()
+        logger.info(f"\nAdding this post into database:\n{message}\n")
         if request_guild in guildlist:
             existing_entry = await collection.find_one({"channel_id": request_channel})
             if existing_entry:

@@ -1,11 +1,18 @@
 import discord
 import motor.motor_asyncio as motor
+import logging
 from discord.ext import commands
-from dotenv import dotenv_values
+from environs import Env
 
-env_vars = dotenv_values('.env')
-token = env_vars.get('TOKEN')
-mongodb = env_vars.get('MONGODB')
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('botpresence')
+logger.setLevel(logging.INFO)
+
+env = Env()
+env.read_env()
+
+token = env.str('TOKEN', default='')
+mongodb = env.str('MONGODB')
 client = motor.AsyncIOMotorClient(mongodb)
 db = client["data"]
 
@@ -14,6 +21,7 @@ class Botpresence(commands.Cog):
         self.bot = bot
 
     # Prevent bot to listen commands elsewhere than set in db
+    # TODO include database function to read status
 
     @staticmethod
     async def check_channel_id(ctx):
@@ -39,12 +47,14 @@ class Botpresence(commands.Cog):
             else:
                 activity = discord.Game(name=activity_name)
 
-        print(f'Botpresence changed to {status.capitalize()}')
+        logger.info(f'Botpresence changed to {status.capitalize()}')
+        if activity:
+            logger.info(f'Activity type: {activity.type.name}, Name: {activity.name}')
         self.bot.loop.create_task(self.bot.change_presence(status=presence_status, activity=activity))
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('Botpresence is online.')
+        logger.info('Botpresence is online.')
 
     @commands.command()
     @commands.check(lambda ctx: Botpresence.check_channel_id(ctx))
