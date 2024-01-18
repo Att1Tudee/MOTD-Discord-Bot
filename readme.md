@@ -6,23 +6,21 @@ Write !setchannel on channel you want the bot to communicate in, and !help in th
 
 ### Installing
 
-You need to have Python runtime installed.
-In root directory type 
-```sh
-pip3 install -r requirements.txt
-```
+You need to have docker installed. 
 
-Then you need to create a .env file in root directory which has the MongoDB address, and Discordbot token 
+Bot uses MongoDB for storing messages.
+You need to give bot permissions for 'manage_messages'. Anyone with 'manage_messages'-permissions can run bot commands.
+
+You need to create a .env file in root directory which has the MongoDB address, and Discordbot token 
 ```sh
 TOKEN = "your_discord_bot_token"
 MONGODB = "your_mongodb_connection_line"
 ```
 
-
-Bot uses MongoDB for storing messages.
-You need to give bot permissions for 'manage_messages'. Anyone with 'manage_messages'-permissions can run bot commands
-
-
+Once all is set,type in root directory
+```sh
+docker compose up -d
+```
 
 ## Usage:
 
@@ -46,9 +44,9 @@ _deletes entire channel entry from DB_
 _adds post in database_
 
 ```sh
-!removepost
+!deletepost
 ```
-_removes post. The post needs to be exactly written as bot have saved it._
+_deletes post. The post needs to be exactly written as bot have saved it._
 
 ```sh
 !viewpostingtime
@@ -66,9 +64,9 @@ _gives you current time in UTC_
 _sets postingtime for channel in UTC. The bot posts random post at that given time._
 
 ```sh
-!clear
+!clear 2
 ```
-_clear 5 deletes 5 messages from above. You can use any number._
+_Clear a specified number of messages (e.g., `!clear 5`)_
 
 ```sh
 !randpost
@@ -83,15 +81,12 @@ _posts all guilds and channels saved posts with posting times_
 
 # other commands
 ```sh
-btc, playing, onlinelisteningto, onlinewatching, online, idlelisteningto, idlewatching, idle, dndlisteningto, dndwatching, dnd
+playing, onlinelisteningto, onlinewatching, online, idlelisteningto, idlewatching, idle, dndlisteningto, dndwatching, dnd
 ```
-_Show BTC current price, and set bot a custom status with either word Watching or Listening to [your sentence added here]  
+_Set bot a custom status with either word Watching or Listening to [your sentence added here]  
 for example_
 
 ```sh
 dndlisteningto epic music
 ```
 _gives bot a Do Not Disturb status(red dot) with message Listening To epic music_
-
-
-from pictotxt change image_path necessarily depending on what you do, develop or just run bot

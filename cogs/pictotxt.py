@@ -58,7 +58,7 @@ class Pictotxt(commands.Cog):
 
                         # Must be "/app/downloaded_image.png" path for Docker container
                         # Change to "downloaded_image.png" when developing
-                        image_path = 'downloaded_image.png'
+                        image_path = '/app/downloaded_image.png'
                         try:
                             with open(image_path, 'wb') as file:
                                 file.write(image_content)
