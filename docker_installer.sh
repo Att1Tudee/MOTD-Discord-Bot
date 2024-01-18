@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Docker installer for rp3
 # Update package lists
 sudo apt update
 

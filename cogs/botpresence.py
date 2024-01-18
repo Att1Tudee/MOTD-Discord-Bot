@@ -1,24 +1,17 @@
 import discord
-import motor.motor_asyncio as motor
-import logging
 from discord.ext import commands
-from environs import Env
+from dbhelper import Dbhelper
+import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('botpresence')
 logger.setLevel(logging.INFO)
-
-env = Env()
-env.read_env()
-
-token = env.str('TOKEN', default='')
-mongodb = env.str('MONGODB')
-client = motor.AsyncIOMotorClient(mongodb)
-db = client["data"]
+db_helper = Dbhelper()
 
 class Botpresence(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.db_helper = db_helper
 
     # Prevent bot to listen commands elsewhere than set in db
     # TODO include database function to read status
@@ -26,7 +19,7 @@ class Botpresence(commands.Cog):
     @staticmethod
     async def check_channel_id(ctx):
         request_guild = str(ctx.guild.id)
-        collection = db.get_collection(request_guild)
+        collection = db_helper.db.get_collection(request_guild)
         existing_entry = await collection.find_one({"channel_id": ctx.channel.id})
         return existing_entry is not None
     
