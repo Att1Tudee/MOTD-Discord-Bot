@@ -79,7 +79,7 @@ _posts a random post from database_
 _posts all guilds and channels saved posts with posting times_
 
 
-# other commands
+# Extra functions
 ```sh
 playing, onlinelisteningto, onlinewatching, online, idlelisteningto, idlewatching, idle, dndlisteningto, dndwatching, dnd
 ```
@@ -90,3 +90,10 @@ for example_
 dndlisteningto epic music
 ```
 _gives bot a Do Not Disturb status(red dot) with message Listening To epic music_
+
+```sh
+pictotxt ( attachment )
+```
+_send a picture that contains text to bot and it returns the text. Best results come from improved quality pictures. This is using Tesseract library._
+
+https://github.com/tesseract-ocr/tesseract
