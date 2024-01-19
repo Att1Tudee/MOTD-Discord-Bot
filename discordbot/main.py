@@ -8,6 +8,8 @@ from discord.ext import commands
 import motor.motor_asyncio as motor
 from environs import Env
 #TODO structure to load only necessary modules
+#TODO What happens if someone forget's their channel, if there's too many channels to sort out
+#TODO Add functionality to communicate with bot from conversation with it. Now it works only from channel
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
