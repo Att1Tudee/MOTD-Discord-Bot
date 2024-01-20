@@ -25,22 +25,31 @@ async def add():
     print("Document Added:", document_data)  # Add this line for debugging
     return await redirect(url_for('index'))
 
-@app.route('/delete/<document_id>')
-async def delete(document_id):
+@app.route('/delete/<guild_id>/<document_id>')
+async def delete(guild_id, document_id):
+    print("Received guild_id:", guild_id)
     print("Received document_id:", document_id)
-    
-    # Convert the string document_id to ObjectId
-    document_id = ObjectId(document_id)
-    existing_document = await db_helper.db.documents.find_one({'_id': document_id})
+
+    try:
+        # Convert the string document_id to ObjectId
+        document_id = ObjectId(document_id)
+        print("Converted to ObjectId:", document_id)
+    except Exception as e:
+        print("Error converting document_id to ObjectId:", str(e))
+        return jsonify({'error': 'Invalid document_id'})
+
+    collection = db_helper.db[guild_id]
+    existing_document = await collection.find_one({'_id': document_id})
+    print("Existing Document:", existing_document)
+
     if existing_document:
-        result = await db_helper.db.documents.delete_one({'_id': document_id})
+        result = await collection.delete_one({'_id': document_id})
         print("Delete Result:", result)
+        redirect_url = url_for('index')
+        return jsonify({'redirect_url': redirect_url})
     else:
         print("Document not found:", document_id)
-
-    redirect_url = url_for('index')
-    return jsonify({'redirect_url': redirect_url})
-
+        return jsonify({'error': 'Document not found'})
 
 @app.route('/delete_collection/<collection_name>', methods=['POST'])
 async def delete_collection(collection_name):

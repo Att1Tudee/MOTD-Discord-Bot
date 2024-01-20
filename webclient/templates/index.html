@@ -11,13 +11,13 @@
         <h1>{{ collection_name }}</h1>
         <ul>
             {% for document in documents %}
-                <li>
-                    {% for key, value in document.items() %}
-                        {{ key }}: {{ value }}<br>
-                    {% endfor %}
-                    <a href="{{ url_for('delete', document_id=document._id) }}">Delete</a>
-                </li>
-            {% endfor %}
+            <li>
+                {% for key, value in document.items() %}
+                    {{ key }}: {{ value }}<br>
+                {% endfor %}
+                <a href="{{ url_for('delete', guild_id=collection_name, document_id=document['_id']) }}">Delete</a>
+            </li>
+        {% endfor %}
         </ul>
         <form action="{{ url_for('add') }}" method="post">
             <label for="document_data">New Document:</label>
