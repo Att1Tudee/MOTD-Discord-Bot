@@ -15,8 +15,12 @@
                 {% for key, value in document.items() %}
                     {{ key }}: {{ value }}<br>
                 {% endfor %}
-                <a href="{{ url_for('delete', guild_id=collection_name, document_id=document['_id']) }}">Delete</a>
-            </li>
+                <form action="{{ url_for('delete', guild_id=collection_name, document_id=document['_id']) }}" method="post" onsubmit="return deleteDocumentAndRefresh(this, event)">
+                    <!-- Round browser limitations on get and post methods -->
+                    <input type="hidden" name="_method" value="DELETE">                
+                    <button type="submit">Delete Document</button>
+                </form>
+                            </li>
         {% endfor %}
         </ul>
         <form action="{{ url_for('add') }}" method="post">
@@ -30,6 +34,27 @@
     {% endfor %}
 
    <script>
+    async function deleteDocumentAndRefresh(form, event) {
+    event.preventDefault();  // Prevent the form from submitting conventionally
+
+    const response = await fetch(form.action, {
+        method: 'DELETE',  // Explicitly set the method to DELETE
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+    });
+
+    const result = await response.json();
+
+    // Check if the server indicates to refresh the page
+    if (result.redirect_url) {
+        // Redirect to the specified URL
+        window.location.href = result.redirect_url;
+    }
+
+    return false;
+}
     async function deleteCollectionAndRefresh(form) {
         const response = await fetch(form.action, {
             method: form.method,

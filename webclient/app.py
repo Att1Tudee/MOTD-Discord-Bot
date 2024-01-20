@@ -25,7 +25,7 @@ async def add():
     print("Document Added:", document_data)  # Add this line for debugging
     return await redirect(url_for('index'))
 
-@app.route('/delete/<guild_id>/<document_id>')
+@app.route('/delete/<guild_id>/<document_id>', methods=[ 'DELETE'])
 async def delete(guild_id, document_id):
     print("Received guild_id:", guild_id)
     print("Received document_id:", document_id)
