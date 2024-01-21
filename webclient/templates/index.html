@@ -1,93 +1,102 @@
 <!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quart MongoDB CRUD</title>
 </head>
+
 <body>
     {% for collection_name, documents in all_docs.items() %}
-        <h1>{{ collection_name }}</h1>
-        <ul>
-            {% for document in documents %}
-            <li>
-                {% for key, value in document.items() %}
-                    {{ key }}: {{ value }}
-                    <button onclick="deleteKeyValuePair('{{ collection_name }}', '{{ document['_id'] }}', '{{ key }}')">Delete</button>
-                    <br>
-                {% endfor %}
-               
-                <form action="{{ url_for('delete', guild_id=collection_name, document_id=document['_id']) }}" method="post" onsubmit="return deleteDocumentAndRefresh(this, event)">
-                    <!-- Round browser limitations on get and post methods -->
-                    <input type="hidden" name="_method" value="DELETE">                
-                    <button type="submit">Delete Document</button>
-                </form>
-                            </li>
-        {% endfor %}
-        </ul>
-        <form action="{{ url_for('add') }}" method="post">
-            <label for="collection_name">Collection Name:</label>
-            <input type="text" id="collection_name" name="collection_name" required><br>
-        
-            <label for="key">Key:</label>
-            <input type="text" id="key" name="key" required><br>
-        
-            <label for="value">Value:</label>
-            <input type="text" id="value" name="value" required><br>
-        
-            <button type="submit">Add Key-Value Pair</button>
-        </form>
-        
-        <form action="{{ url_for('delete_collection', collection_name=collection_name) }}" method="post" onsubmit="return deleteCollectionAndRefresh(this)">
+    <div class="container">
+        <h1>{{ collection_name }} </h1>
+        <form action="{{ url_for('delete_collection', collection_name=collection_name) }}" method="post"
+            onsubmit="return deleteCollectionAndRefresh(this)">
             <button type="submit">Delete Collection</button>
         </form>
+    </div>
+    <ul>
+        {% for document in documents %}
+        <li>
+            {% for key, value in document.items() %}
+            {{ key }}: {{ value }}
+            <button
+                onclick="deleteKeyValuePair('{{ collection_name }}', '{{ document['_id'] }}', '{{ key }}')">Delete</button>
+            <br>
+            {% endfor %}
+
+            <form action="{{ url_for('delete', guild_id=collection_name, document_id=document['_id']) }}" method="post"
+                onsubmit="return deleteDocumentAndRefresh(this, event)">
+                <!-- Round browser limitations on get and post methods -->
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit">Delete Document</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+
+
+
     {% endfor %}
+    <form action="{{ url_for('add') }}" method="post">
+        <label for="collection_name">Collection Name:</label>
+        <input type="text" id="collection_name" name="collection_name" required><br>
 
-   <script>
-    async function deleteDocumentAndRefresh(form, event) {
-    event.preventDefault();  // Prevent the form from submitting conventionally
+        <label for="key">Key:</label>
+        <input type="text" id="key" name="key" required><br>
 
-    const response = await fetch(form.action, {
-        method: 'DELETE',  // Explicitly set the method to DELETE
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-    });
+        <label for="value">Value:</label>
+        <input type="text" id="value" name="value" required><br>
 
-    const result = await response.json();
+        <button type="submit">Add Key-Value Pair</button>
+    </form>
+    <script>
+        async function deleteDocumentAndRefresh(form, event) {
+            event.preventDefault();  // Prevent the form from submitting conventionally
 
-    // Check if the server indicates to refresh the page
-    if (result.redirect_url) {
-        // Redirect to the specified URL
-        window.location.href = result.redirect_url;
-    }
+            const response = await fetch(form.action, {
+                method: 'DELETE',  // Explicitly set the method to DELETE
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
 
-    return false;
-}
-    async function deleteCollectionAndRefresh(form) {
-        const response = await fetch(form.action, {
-            method: form.method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({}),
-        });
+            const result = await response.json();
 
-        const result = await response.json();
+            // Check if the server indicates to refresh the page
+            if (result.redirect_url) {
+                // Redirect to the specified URL
+                window.location.href = result.redirect_url;
+            }
 
-        // Check if the server indicates to refresh the page
-        if (result.redirect_url) {
-            // Redirect to the specified URL
-            window.location.href = result.redirect_url;
-        }        
+            return false;
+        }
+        async function deleteCollectionAndRefresh(form) {
+            const response = await fetch(form.action, {
+                method: form.method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
 
-        return false;  // Prevent the form from submitting conventionally
-    }
-    async function deleteKeyValuePair(collection_name, document_id, key_to_delete) {
+            const result = await response.json();
+
+            // Check if the server indicates to refresh the page
+            if (result.redirect_url) {
+                // Redirect to the specified URL
+                window.location.href = result.redirect_url;
+            }
+
+            return false;  // Prevent the form from submitting conventionally
+        }
+        async function deleteKeyValuePair(collection_name, document_id, key_to_delete) {
             const confirmDelete = confirm(`Are you sure you want to delete the key '${key_to_delete}' from the document?`);
-            
+
             if (!confirmDelete) {
                 return;
             }
@@ -110,4 +119,5 @@
         }
     </script>
 </body>
+
 </html>
