@@ -13,8 +13,11 @@
             {% for document in documents %}
             <li>
                 {% for key, value in document.items() %}
-                    {{ key }}: {{ value }}<br>
+                    {{ key }}: {{ value }}
+                    <button onclick="deleteKeyValuePair('{{ collection_name }}', '{{ document['_id'] }}', '{{ key }}')">Delete</button>
+                    <br>
                 {% endfor %}
+               
                 <form action="{{ url_for('delete', guild_id=collection_name, document_id=document['_id']) }}" method="post" onsubmit="return deleteDocumentAndRefresh(this, event)">
                     <!-- Round browser limitations on get and post methods -->
                     <input type="hidden" name="_method" value="DELETE">                
@@ -78,10 +81,33 @@
         if (result.redirect_url) {
             // Redirect to the specified URL
             window.location.href = result.redirect_url;
-        }
+        }        
 
         return false;  // Prevent the form from submitting conventionally
     }
+    async function deleteKeyValuePair(collection_name, document_id, key_to_delete) {
+            const confirmDelete = confirm(`Are you sure you want to delete the key '${key_to_delete}' from the document?`);
+            
+            if (!confirmDelete) {
+                return;
+            }
+
+            const response = await fetch(`/delete_key_value/${collection_name}/${document_id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 'keyToDelete': key_to_delete }),
+            });
+
+            const result = await response.json();
+
+            // Check if the server indicates to refresh the page
+            if (result.redirect_url) {
+                // Redirect to the specified URL
+                window.location.href = result.redirect_url;
+            }
+        }
     </script>
 </body>
 </html>

@@ -58,6 +58,32 @@ async def delete(guild_id, document_id):
     else:
         return jsonify({'error': 'Document not found'})
 
+@app.route('/delete_key_value/<collection_name>/<document_id>', methods=['DELETE'])
+async def delete_key_value(collection_name, document_id):
+    try:
+        document_id = ObjectId(document_id)
+    except Exception as e:
+        print("Error converting document_id to ObjectId:", str(e))
+        return jsonify({'error': 'Invalid document_id'})
+
+    form_data = await request.get_json()
+    key_to_delete = form_data.get('keyToDelete')
+
+    collection = db_helper.db[collection_name]
+    existing_document = await collection.find_one({'_id': document_id})
+
+    if existing_document and key_to_delete in existing_document:
+        # Delete the specified key-value pair from the document
+        await collection.update_one(
+            {'_id': document_id},
+            {'$unset': {key_to_delete: 1}}
+        )
+
+        print(f"Key-Value Pair '{key_to_delete}' Deleted from Collection {collection_name} for document {document_id}")
+        return jsonify({'redirect_url': url_for('index')})
+    else:
+        return jsonify({'error': 'Document or Key not found'})
+
 @app.route('/delete_collection/<collection_name>', methods=['POST'])
 async def delete_collection(collection_name):
     # Delete the collection
