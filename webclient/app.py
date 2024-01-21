@@ -18,25 +18,39 @@ async def index():
         all_docs[collection_name] = documents
     return await render_template('index.html', all_docs=all_docs)
 
-@app.route('/add', methods=['POST'])
-async def add():
+@app.route('/add_key_value/<collection_name>/<document_id>', methods=['POST'])
+async def add_key_value(collection_name, document_id):
+    try:
+        document_id = ObjectId(document_id)
+        print("trigger  document_id = ObjectId(document_id)")
+    except Exception as e:
+        print("Error converting document_id to ObjectId:", str(e))
+        return jsonify({'error': 'Invalid document_id'})
+
     form_data = await request.form
-    collection_name = form_data.get('collection_name')
     key = form_data.get('key')
+    print("trigger should happen onceee")
     value = form_data.get('value')
 
-    if collection_name and key and value:
-        # Create a new collection if it doesn't exist
-        if collection_name not in await db_helper.db.list_collection_names():
-            await db_helper.db.create_collection(collection_name)
+    print(f"Received data: collection_name={collection_name}, document_id={document_id}, key={key}, value={value}")
 
-        # Insert the key-value pair into the specified collection
+    if key and value:
+        print("trigger if key and value")
         collection = db_helper.db[collection_name]
-        await collection.insert_one({key: value})
+        existing_document = await collection.find_one({'_id': document_id})
 
-        print(f"Key-Value Pair Added to Collection {collection_name}: {key}={value}")
+        if existing_document:
+            print("trigger existing doc")
+            # Add the key-value pair to the document
+            await collection.update_one(
+                {'_id': document_id},
+                {'$set': {key: value}}
+            )
 
-        return redirect(url_for('index'))
+            print(f"Key-Value Pair '{key}':{value} added to Collection {collection_name} for document {document_id}")
+            return redirect(url_for('index'))
+        else:
+            return jsonify({'error': 'Document not found'})
     else:
         return jsonify({'error': 'Invalid parameters'})
 
