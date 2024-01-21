@@ -10,6 +10,7 @@
 
 <body>
     <div class="container">
+        <button onclick="createCollectionPrompt()">Create New Collection</button>
 
         {% for collection_name, documents in all_docs.items() %}
         <h1>{{ collection_name }} </h1>
@@ -17,7 +18,8 @@
             onsubmit="return deleteCollectionAndRefresh(this)">
             <button type="submit">Delete Collection</button>
         </form>
-        <button onclick="createCollectionPrompt()">Create New Collection</button>
+        <button onclick="addNewDocumentPrompt('{{ collection_name }}')">Add New Document</button>
+
 
 
         <ul>
@@ -63,6 +65,31 @@
                 body: JSON.stringify({}),
             });
             const result = await response.json();
+            // Check if the server indicates to refresh the page
+            if (result.redirect_url) {
+                // Redirect to the specified URL
+                window.location.href = result.redirect_url;
+            }
+
+            return false;  // Prevent the form from submitting conventionally
+        }
+        async function addNewDocumentPrompt(collectionName) {            
+            event.preventDefault();
+            // Use prompt to get key and value for the new document
+            const key = prompt('Enter Key:');
+            const value = prompt('Enter Value:');
+            if (key === null || value === null) return false; // User clicked Cancel
+
+            // Perform the AJAX request to add the new document
+            const response = await fetch(`/add_new_document/${collectionName}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ key, value }),
+            });
+            const result = await response.json();
+
             // Check if the server indicates to refresh the page
             if (result.redirect_url) {
                 // Redirect to the specified URL
@@ -150,7 +177,7 @@
             if (!confirmDelete) {
                 return;
             }
-
+// TODO Add the confirming everywhere!
             const response = await fetch(`/delete_key_value/${collection_name}/${document_id}`, {
                 method: 'DELETE',
                 headers: {

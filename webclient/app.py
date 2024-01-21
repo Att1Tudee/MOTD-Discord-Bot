@@ -14,7 +14,7 @@ async def index():
         documents = await db_helper.db[collection_name].find().to_list(length=100)
         all_docs[collection_name] = documents
     return await render_template('index.html', all_docs=all_docs)
-    
+
 @app.route('/create_collection/<collection_name>', methods=['POST'])
 async def create_collection(collection_name):
     try:
@@ -30,6 +30,39 @@ async def create_collection(collection_name):
             return jsonify({'redirect_url': redirect_url})
         else:
             return jsonify({'error': 'Collection already exists'})
+
+@app.route('/add_new_document/<collection_name>', methods=['POST'])
+async def add_new_document(collection_name):
+    try:
+        # Get key and value from the request's JSON data
+        data = await request.get_json()
+        key = data.get('key')
+        value = data.get('value')
+        print(key)
+        print(value)
+        print(collection_name)
+        
+        # Validate that both key and value are provided
+        if not key or not value:
+            return jsonify({'error': 'Key and value are required'})
+        
+        # Get the MongoDB collection for the specified collection_name
+        collection = db_helper.db[collection_name]
+
+        # Create a new document with the provided key and value
+        new_document = {key: value}
+        
+        # Insert the new document into the collection
+        result = await collection.insert_one(new_document)
+
+        # Check if the document was successfully inserted
+        if result.inserted_id:
+            return jsonify({'success': 'New document added successfully', 'redirect_url': url_for('index')})
+
+        return jsonify({'error': 'Failed to add a new document'})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
 
 @app.route('/add_key_value/<collection_name>/<document_id>', methods=['POST'])
 async def add_key_value(collection_name, document_id):
