@@ -17,12 +17,15 @@
             onsubmit="return deleteCollectionAndRefresh(this)">
             <button type="submit">Delete Collection</button>
         </form>
+        <button onclick="createCollectionPrompt()">Create New Collection</button>
+
 
         <ul>
             {% for document in documents %}
             <li>
-                <form action="{{ url_for('add_key_value', collection_name=collection_name, document_id=document['_id']) }}" method="post" 
-                onsubmit="return addKeyValuePairPopup(this)">
+                <form
+                    action="{{ url_for('add_key_value', collection_name=collection_name, document_id=document['_id']) }}"
+                    method="post" onsubmit="return addKeyValuePairPopup(this)">
                     <button type="submit">Add Key-Value Pair</button>
                 </form>
                 {% for key, value in document.items() %}
@@ -48,6 +51,26 @@
     </div>
 
     <script>
+        async function createCollectionPrompt() {
+            event.preventDefault();
+            const newCollectionName = prompt('Enter the name for the new collection:');
+            if (newCollectionName === null) return false; // User clicked Cancel
+            const response = await fetch(`/create_collection/${newCollectionName}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
+            const result = await response.json();
+            // Check if the server indicates to refresh the page
+            if (result.redirect_url) {
+                // Redirect to the specified URL
+                window.location.href = result.redirect_url;
+            }
+
+            return false;  // Prevent the form from submitting conventionally
+        }
         async function addKeyValuePairPopup(form) {
             event.preventDefault();
             // Use prompt to get collection name, key, and value from the user
@@ -67,7 +90,7 @@
             const response = await fetch(form.action, {
                 method: form.method,
                 body: formData,
-            });           
+            });
             const result = await response.json();
 
             // Check if the server indicates to refresh the page

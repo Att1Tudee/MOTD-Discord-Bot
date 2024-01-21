@@ -14,12 +14,27 @@ async def index():
         documents = await db_helper.db[collection_name].find().to_list(length=100)
         all_docs[collection_name] = documents
     return await render_template('index.html', all_docs=all_docs)
+    
+@app.route('/create_collection/<collection_name>', methods=['POST'])
+async def create_collection(collection_name):
+    try:
+        # Validate if the provided collection_name is a valid ObjectId
+        ObjectId(collection_name)
+        return jsonify({'error': 'Collection name cannot be a valid ObjectId'})
+    except Exception:
+        # If it's not a valid ObjectId, proceed to create the collection
+        db = db_helper.db
+        if collection_name not in await db.list_collection_names():
+            await db.create_collection(collection_name)
+            redirect_url = url_for('index')
+            return jsonify({'redirect_url': redirect_url})
+        else:
+            return jsonify({'error': 'Collection already exists'})
 
 @app.route('/add_key_value/<collection_name>/<document_id>', methods=['POST'])
 async def add_key_value(collection_name, document_id):
     try:
         document_id = ObjectId(document_id)
-        print("trigger  document_id = ObjectId(document_id)")
     except Exception as e:
         print("Error converting document_id to ObjectId:", str(e))
         return jsonify({'error': 'Invalid document_id'})
