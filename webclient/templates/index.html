@@ -21,7 +21,8 @@
         <ul>
             {% for document in documents %}
             <li>
-                <form action="{{ url_for('add_key_value', collection_name=collection_name, document_id=document['_id']) }}" method="post" onsubmit="return addKeyValuePairPopup(this)">
+                <form action="{{ url_for('add_key_value', collection_name=collection_name, document_id=document['_id']) }}" method="post" 
+                onsubmit="return addKeyValuePairPopup(this)">
                     <button type="submit">Add Key-Value Pair</button>
                 </form>
                 {% for key, value in document.items() %}
@@ -66,8 +67,7 @@
             const response = await fetch(form.action, {
                 method: form.method,
                 body: formData,
-            });
-
+            });           
             const result = await response.json();
 
             // Check if the server indicates to refresh the page
@@ -101,6 +101,7 @@
             return false;
         }
         async function deleteCollectionAndRefresh(form) {
+            event.preventDefault();
             const response = await fetch(form.action, {
                 method: form.method,
                 headers: {
@@ -120,6 +121,7 @@
             return false;  // Prevent the form from submitting conventionally
         }
         async function deleteKeyValuePair(collection_name, document_id, key_to_delete) {
+            event.preventDefault();
             const confirmDelete = confirm(`Are you sure you want to delete the key '${key_to_delete}' from the document?`);
 
             if (!confirmDelete) {

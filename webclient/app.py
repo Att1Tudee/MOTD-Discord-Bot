@@ -8,10 +8,7 @@ db_helper = Dbhelper()
 
 @app.route('/')
 async def index():
-    # Get all collection names
     collection_names = await db_helper.db.list_collection_names()
-
-    # Retrieve documents from each collection
     all_docs = {}
     for collection_name in collection_names:
         documents = await db_helper.db[collection_name].find().to_list(length=100)
@@ -29,32 +26,28 @@ async def add_key_value(collection_name, document_id):
 
     form_data = await request.form
     key = form_data.get('key')
-    print("trigger should happen onceee")
     value = form_data.get('value')
 
     print(f"Received data: collection_name={collection_name}, document_id={document_id}, key={key}, value={value}")
 
     if key and value:
-        print("trigger if key and value")
         collection = db_helper.db[collection_name]
         existing_document = await collection.find_one({'_id': document_id})
 
         if existing_document:
-            print("trigger existing doc")
-            # Add the key-value pair to the document
             await collection.update_one(
                 {'_id': document_id},
                 {'$set': {key: value}}
             )
-
-            print(f"Key-Value Pair '{key}':{value} added to Collection {collection_name} for document {document_id}")
-            return redirect(url_for('index'))
+            response_data = {
+                    'message': f"Key-Value Pair '{key}':{value} added to Collection {collection_name} for document {document_id}",
+                    'redirect_url': url_for('index')
+                }
+            return jsonify(response_data)
         else:
             return jsonify({'error': 'Document not found'})
     else:
         return jsonify({'error': 'Invalid parameters'})
-
-
 
 @app.route('/delete/<guild_id>/<document_id>', methods=[ 'DELETE'])
 async def delete(guild_id, document_id):
@@ -82,17 +75,13 @@ async def delete_key_value(collection_name, document_id):
 
     form_data = await request.get_json()
     key_to_delete = form_data.get('keyToDelete')
-
     collection = db_helper.db[collection_name]
     existing_document = await collection.find_one({'_id': document_id})
-
     if existing_document and key_to_delete in existing_document:
-        # Delete the specified key-value pair from the document
         await collection.update_one(
             {'_id': document_id},
             {'$unset': {key_to_delete: 1}}
         )
-
         print(f"Key-Value Pair '{key_to_delete}' Deleted from Collection {collection_name} for document {document_id}")
         return jsonify({'redirect_url': url_for('index')})
     else:
@@ -100,12 +89,10 @@ async def delete_key_value(collection_name, document_id):
 
 @app.route('/delete_collection/<collection_name>', methods=['POST'])
 async def delete_collection(collection_name):
-    # Delete the collection
     await db_helper.db.drop_collection(collection_name)
     
-    # Return JSON response with redirect URL
     redirect_url = url_for('index')
-    print("Collection Deleted:", collection_name)  # Add this line for debugging
+    print("Collection Deleted:", collection_name)  
     return jsonify({'redirect_url': redirect_url})
 
 if __name__ == '__main__':
