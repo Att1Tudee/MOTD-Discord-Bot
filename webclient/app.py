@@ -20,35 +20,42 @@ async def index():
 
 @app.route('/add', methods=['POST'])
 async def add():
-    document_data = await request.form.get('document_data')
-    await db_helper.db.documents.insert_one({'data': document_data})
-    print("Document Added:", document_data)  # Add this line for debugging
-    return await redirect(url_for('index'))
+    form_data = await request.form
+    collection_name = form_data.get('collection_name')
+    key = form_data.get('key')
+    value = form_data.get('value')
+
+    if collection_name and key and value:
+        # Create a new collection if it doesn't exist
+        if collection_name not in await db_helper.db.list_collection_names():
+            await db_helper.db.create_collection(collection_name)
+
+        # Insert the key-value pair into the specified collection
+        collection = db_helper.db[collection_name]
+        await collection.insert_one({key: value})
+
+        print(f"Key-Value Pair Added to Collection {collection_name}: {key}={value}")
+
+        return redirect(url_for('index'))
+    else:
+        return jsonify({'error': 'Invalid parameters'})
+
+
 
 @app.route('/delete/<guild_id>/<document_id>', methods=[ 'DELETE'])
 async def delete(guild_id, document_id):
-    print("Received guild_id:", guild_id)
-    print("Received document_id:", document_id)
-
     try:
-        # Convert the string document_id to ObjectId
         document_id = ObjectId(document_id)
-        print("Converted to ObjectId:", document_id)
     except Exception as e:
         print("Error converting document_id to ObjectId:", str(e))
         return jsonify({'error': 'Invalid document_id'})
-
     collection = db_helper.db[guild_id]
     existing_document = await collection.find_one({'_id': document_id})
-    print("Existing Document:", existing_document)
-
     if existing_document:
         result = await collection.delete_one({'_id': document_id})
-        print("Delete Result:", result)
         redirect_url = url_for('index')
         return jsonify({'redirect_url': redirect_url})
     else:
-        print("Document not found:", document_id)
         return jsonify({'error': 'Document not found'})
 
 @app.route('/delete_collection/<collection_name>', methods=['POST'])

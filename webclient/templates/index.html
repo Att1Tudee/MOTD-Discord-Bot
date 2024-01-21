@@ -24,10 +24,18 @@
         {% endfor %}
         </ul>
         <form action="{{ url_for('add') }}" method="post">
-            <label for="document_data">New Document:</label>
-            <input type="text" id="document_data" name="document_data" required>
-            <button type="submit">Add Document</button>
+            <label for="collection_name">Collection Name:</label>
+            <input type="text" id="collection_name" name="collection_name" required><br>
+        
+            <label for="key">Key:</label>
+            <input type="text" id="key" name="key" required><br>
+        
+            <label for="value">Value:</label>
+            <input type="text" id="value" name="value" required><br>
+        
+            <button type="submit">Add Key-Value Pair</button>
         </form>
+        
         <form action="{{ url_for('delete_collection', collection_name=collection_name) }}" method="post" onsubmit="return deleteCollectionAndRefresh(this)">
             <button type="submit">Delete Collection</button>
         </form>
