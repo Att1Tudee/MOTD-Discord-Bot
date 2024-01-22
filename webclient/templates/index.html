@@ -5,10 +5,11 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quart MongoDB CRUD</title>
+    <title>MOTD database editor</title>
 </head>
 
 <body>
+    <p> This is webclient for MOTD bot database editing. You can modify the values with your own risk. Don't use special marks with posts. </p>
     <div class="container">
         <button onclick="createCollectionPrompt()">Create New Collection</button>
         {% for collection_name, documents in all_docs.items() %}

@@ -196,6 +196,7 @@ class Dbcmds(commands.Cog):
     @commands.check(lambda ctx: Dbcmds.check_channel_id(ctx))
     @commands.has_permissions(manage_messages=True)
     async def addpost(self, ctx, *, message):
+        # TODO create functionality not to accept posts with |mark
         embed = Embeds.emsg(f"\nAdding this post into database:\n{message}\n")     
         request_guild = str(ctx.guild.id)
         request_channel = ctx.channel.id
@@ -207,7 +208,7 @@ class Dbcmds(commands.Cog):
             if existing_entry:
                 if "post" in existing_entry:
                     existing_posts = existing_entry["post"]
-                    updated_posts = f"{existing_posts}\n{message}"
+                    updated_posts = f"{existing_posts}|{message}"
                     await collection.update_one({"channel_id": request_channel}, {"$set": {"post": updated_posts}})
                     await ctx.send(embed=embed)
                 else:
@@ -238,13 +239,13 @@ class Dbcmds(commands.Cog):
             return
 
         existing_posts = existing_entry.get("post", "")
-        post_list = existing_posts.split("\n")
+        post_list = existing_posts.split("|")
         if message not in post_list:
             await ctx.send(embed=Embeds.err(f"\nThe specified post was not found in the database.\n"))
             return
 
         post_list.remove(message)
-        updated_posts = "\n".join(post_list)
+        updated_posts = "|".join(post_list)
         await collection.update_one({"channel_id": request_channel}, {"$set": {"post": updated_posts}})
         await ctx.send(embed=Embeds.emsg(f"\nDeleting this post from the database:\n{message}\n"))
 

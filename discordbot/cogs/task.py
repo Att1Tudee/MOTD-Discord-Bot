@@ -49,7 +49,7 @@ class Task(commands.Cog):
         existing_entry = await collection.find_one({"channel_id": request_channel})
         if existing_entry and "post" in existing_entry:
             existing_posts = existing_entry["post"]
-            post_lines = existing_posts.split("\n")
+            post_lines = existing_posts.split("|")
             logger.info(len(post_lines))
             if len(post_lines) > 1:
                 logger.info("trigger")

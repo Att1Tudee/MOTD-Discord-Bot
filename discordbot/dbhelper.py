@@ -7,8 +7,9 @@ class Dbhelper:
         self.env.read_env()
         self.mongodb = self.env.str('MONGODB', default='')
         self.client = motor.AsyncIOMotorClient(self.mongodb)
-        self.db = self.client["data"]
-
+        self.database = self.env.str('DATABASE', default='data')
+        self.db = self.client[self.database]
+        
     async def check_channel_id(self, guild_id, channel_id):
         request_guild = str(guild_id)
         collection = self.db.get_collection(request_guild)
