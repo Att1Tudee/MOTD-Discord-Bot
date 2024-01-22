@@ -44,9 +44,9 @@ class Task(commands.Cog):
 
     async def randpost(self, channel):
         request_guild = str(channel.guild.id)
-        request_channel = channel.id
+        request_channel = str(channel.id)
         collection = db_helper.db.get_collection(request_guild)        
-        existing_entry = await collection.find_one({"channel_id": request_channel})
+        existing_entry = await collection.find_one({"channel_id": str(request_channel)})
         if existing_entry and "post" in existing_entry:
             existing_posts = existing_entry["post"]
             post_lines = existing_posts.split("|")

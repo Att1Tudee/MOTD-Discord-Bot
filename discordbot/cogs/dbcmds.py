@@ -20,7 +20,7 @@ class Dbcmds(commands.Cog):
     async def check_channel_id(ctx):
         request_guild = str(ctx.guild.id)
         collection = db_helper.db.get_collection(request_guild)
-        existing_entry = await collection.find_one({"channel_id": ctx.channel.id})
+        existing_entry = await collection.find_one({"channel_id": str(ctx.channel.id)})
         return existing_entry is not None
 
     @commands.Cog.listener()
@@ -33,22 +33,22 @@ class Dbcmds(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def setchannel(self, ctx, request_channel=None):
         if request_channel is None:
-            request_channel = ctx.channel.id
+            request_channel = str(ctx.channel.id)
         request_guild = str(ctx.guild.id)
         collection = db_helper.db.get_collection(request_guild)
         guildlist = await db_helper.db.list_collection_names()
         if request_guild in guildlist:
-            existing_entry = await collection.find_one({"channel_id": request_channel})
+            existing_entry = await collection.find_one({"channel_id": str(request_channel)})
             if existing_entry:                
                 await ctx.send(embed=Embeds.emsg("\nChannel ID already exists in the database.\n"))
 
             else:
-                await collection.insert_one({"channel_id": request_channel})
+                await collection.insert_one({"channel_id": str(request_channel)})
                 await ctx.send(embed=Embeds.emsg(f"\nAdding this channel into the database:\n{request_channel}\n"))
 
         else:
             await db_helper.create_collection(request_guild)
-            await collection.insert_one({"channel_id": request_channel})
+            await collection.insert_one({"channel_id": str(request_channel)})
             await ctx.send(embed=Embeds.emsg(f"\nAdding this channel and guild into the database:\n{request_channel}\n"))
                     
 
@@ -59,12 +59,12 @@ class Dbcmds(commands.Cog):
     async def unsetchannel(self, ctx):
         request_guild = str(ctx.guild.id)
         collection = db_helper.db.get_collection(request_guild)
-        request_channel = ctx.channel.id
+        request_channel = str(ctx.channel.id)
         guildlist = await db_helper.db.list_collection_names()
         if request_guild in guildlist:
-            existing_entry = await collection.find_one({"channel_id": request_channel})
+            existing_entry = await collection.find_one({"channel_id": str(request_channel)})
             if existing_entry:
-                await collection.delete_one({"channel_id": request_channel})                                           
+                await collection.delete_one({"channel_id": str(request_channel)})                                           
                 await ctx.send(embed=Embeds.emsg(f"\nMatching entry deleted from database:\n{request_channel}\n"))
    
  
@@ -76,20 +76,20 @@ class Dbcmds(commands.Cog):
     async def setpostingtime(self, ctx, *, wantedtime):
         embed = Embeds.emsg(f"\nApplying this post time into database:\n{wantedtime}\n")     
         request_guild = str(ctx.guild.id)
-        request_channel = ctx.channel.id
+        request_channel = str(ctx.channel.id)
         collection = db_helper.db.get_collection(request_guild)        
         guildlist = await db_helper.db.list_collection_names()
         if request_guild in guildlist:
-            existing_entry = await collection.find_one({"channel_id": request_channel})
+            existing_entry = await collection.find_one({"channel_id": str(request_channel)})
             if existing_entry:
                 if "posting_time_utc" in existing_entry:
-                    await collection.update_one({"channel_id": request_channel}, {"$set": {"posting_time_utc": wantedtime}})
+                    await collection.update_one({"channel_id": str(request_channel)}, {"$set": {"posting_time_utc": wantedtime}})
                     await ctx.send(embed=embed)
                 else:
-                    await collection.update_one({"channel_id": request_channel}, {"$set": {"posting_time_utc": wantedtime}})
+                    await collection.update_one({"channel_id": str(request_channel)}, {"$set": {"posting_time_utc": wantedtime}})
                     await ctx.send(embed=embed)
             else:
-                await collection.insert_one({"channel_id": request_channel, "posting_time_utc": wantedtime})
+                await collection.insert_one({"channel_id": str(request_channel), "posting_time_utc": wantedtime})
                 await ctx.send(embed=embed)
     
     @commands.command()
@@ -142,9 +142,9 @@ class Dbcmds(commands.Cog):
         #TODO fix the situation when nothing is posted. Iterate the posts list from up to down
         # as in setting the newest added post in top of the list
         request_guild = str(ctx.channel.guild.id)
-        request_channel = ctx.channel.id
+        request_channel = str(ctx.channel.id)
         collection = db_helper.db.get_collection(request_guild)        
-        existing_entry = await collection.find_one({"channel_id": request_channel})
+        existing_entry = await collection.find_one({"channel_id": str(request_channel)})
         if existing_entry and "post" in existing_entry:
             existing_posts = existing_entry["post"]
             post_lines = existing_posts.split("\n")
@@ -171,14 +171,14 @@ class Dbcmds(commands.Cog):
     @commands.has_permissions(manage_messages=True) 
     async def viewpostingtime(self, ctx):
         request_guild = str(ctx.guild.id)
-        request_channel = ctx.channel.id
+        request_channel = str(ctx.channel.id)
         collection = db_helper.db.get_collection(request_guild)        
         guildlist = await db_helper.db.list_collection_names()
         if request_guild in guildlist:
-            existing_entry = await collection.find_one({"channel_id": request_channel})
+            existing_entry = await collection.find_one({"channel_id": str(request_channel)})
             if existing_entry:
                 if "posting_time_utc" in existing_entry:
-                    result = await collection.find_one({"channel_id": request_channel, "posting_time_utc": {"$exists": True}})
+                    result = await collection.find_one({"channel_id": str(request_channel), "posting_time_utc": {"$exists": True}})
                     print(result)
                     if result:
                         embed = Embeds.emsg(f"\nCurrent posting time in UTC is:\n{result['posting_time_utc']}\n")
@@ -199,23 +199,23 @@ class Dbcmds(commands.Cog):
         # TODO create functionality not to accept posts with |mark
         embed = Embeds.emsg(f"\nAdding this post into database:\n{message}\n")     
         request_guild = str(ctx.guild.id)
-        request_channel = ctx.channel.id
+        request_channel = str(ctx.channel.id)
         collection = db_helper.db.get_collection(request_guild)        
         guildlist = await db_helper.db.list_collection_names()
         logger.info(f"\nAdding this post into database:\n{message}\n")
         if request_guild in guildlist:
-            existing_entry = await collection.find_one({"channel_id": request_channel})
+            existing_entry = await collection.find_one({"channel_id": str(request_channel)})
             if existing_entry:
                 if "post" in existing_entry:
                     existing_posts = existing_entry["post"]
                     updated_posts = f"{existing_posts}|{message}"
-                    await collection.update_one({"channel_id": request_channel}, {"$set": {"post": updated_posts}})
+                    await collection.update_one({"channel_id": str(request_channel)}, {"$set": {"post": updated_posts}})
                     await ctx.send(embed=embed)
                 else:
-                    await collection.update_one({"channel_id": request_channel}, {"$set": {"post": message}})
+                    await collection.update_one({"channel_id": str(request_channel)}, {"$set": {"post": message}})
                     await ctx.send(embed=embed)
             else:
-                await collection.insert_one({"channel_id": request_channel, "post": message})
+                await collection.insert_one({"channel_id": str(request_channel), "post": message})
                 await ctx.send(embed=embed)
     
     # Delete post
@@ -225,7 +225,7 @@ class Dbcmds(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     async def deletepost(self, ctx, *, message):
         request_guild = str(ctx.guild.id)
-        request_channel = ctx.channel.id
+        request_channel = str(ctx.channel.id)
         collection = db_helper.db.get_collection(request_guild)
         guildlist = await db_helper.db.list_collection_names()
 
@@ -233,7 +233,7 @@ class Dbcmds(commands.Cog):
             await ctx.send(embed=Embeds.err(f"\nNo database found for the current guild.\n"))
             return
 
-        existing_entry = await collection.find_one({"channel_id": request_channel})
+        existing_entry = await collection.find_one({"channel_id": str(request_channel)})
         if not existing_entry:
             await ctx.send(embed=Embeds.err(f"\nNo entry found for the current channel in the database.\n"))
             return
@@ -246,7 +246,7 @@ class Dbcmds(commands.Cog):
 
         post_list.remove(message)
         updated_posts = "|".join(post_list)
-        await collection.update_one({"channel_id": request_channel}, {"$set": {"post": updated_posts}})
+        await collection.update_one({"channel_id": str(request_channel)}, {"$set": {"post": updated_posts}})
         await ctx.send(embed=Embeds.emsg(f"\nDeleting this post from the database:\n{message}\n"))
 
     # Show database content
@@ -256,9 +256,9 @@ class Dbcmds(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     async def showcontent(self, ctx):
         request_guild = str(ctx.guild.id)
-        request_channel = ctx.channel.id
+        request_channel = str(ctx.channel.id)
         collection = db_helper.db.get_collection(request_guild)
-        existing_entry = await collection.find_one({"channel_id": request_channel})
+        existing_entry = await collection.find_one({"channel_id": str(request_channel)})
         if existing_entry and "post" in existing_entry:
             existing_posts = existing_entry["post"]
             await ctx.send(embed=Embeds.emsg(f"\n{existing_posts}\n"))
