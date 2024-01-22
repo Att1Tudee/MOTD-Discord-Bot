@@ -97,8 +97,8 @@ async def add_key_value(collection_name, document_id):
     else:
         return jsonify({'error': 'Invalid parameters'})
 
-@app.route('/delete/<guild_id>/<document_id>', methods=[ 'DELETE'])
-async def delete(guild_id, document_id):
+@app.route('/delete_document/<guild_id>/<document_id>', methods=[ 'DELETE'])
+async def delete_document(guild_id, document_id):
     try:
         document_id = ObjectId(document_id)
     except Exception as e:

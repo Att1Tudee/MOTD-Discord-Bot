@@ -11,7 +11,6 @@
 <body>
     <div class="container">
         <button onclick="createCollectionPrompt()">Create New Collection</button>
-
         {% for collection_name, documents in all_docs.items() %}
         <h1>{{ collection_name }} </h1>
         <form action="{{ url_for('delete_collection', collection_name=collection_name) }}" method="post"
@@ -19,9 +18,6 @@
             <button type="submit">Delete Collection</button>
         </form>
         <button onclick="addNewDocumentPrompt('{{ collection_name }}')">Add New Document</button>
-
-
-
         <ul>
             {% for document in documents %}
             <li>
@@ -37,8 +33,7 @@
                     Key-Value Pair</button>
                 <br>
                 {% endfor %}
-
-                <form action="{{ url_for('delete', guild_id=collection_name, document_id=document['_id']) }}"
+                <form action="{{ url_for('delete_document', guild_id=collection_name, document_id=document['_id']) }}"
                     method="post" onsubmit="return deleteDocumentAndRefresh(this, event)">
                     <!-- Round browser limitations on get and post methods -->
                     <input type="hidden" name="_method" value="DELETE">
@@ -49,14 +44,13 @@
         </ul>
         {% endfor %}
 
-
     </div>
 
     <script>
         async function createCollectionPrompt() {
             event.preventDefault();
             const newCollectionName = prompt('Enter the name for the new collection:');
-            if (newCollectionName === null) return false; // User clicked Cancel
+            if (newCollectionName === null) return false;
             const response = await fetch(`/create_collection/${newCollectionName}`, {
                 method: 'POST',
                 headers: {
@@ -65,22 +59,17 @@
                 body: JSON.stringify({}),
             });
             const result = await response.json();
-            // Check if the server indicates to refresh the page
             if (result.redirect_url) {
-                // Redirect to the specified URL
                 window.location.href = result.redirect_url;
             }
-
-            return false;  // Prevent the form from submitting conventionally
+            return false;
         }
-        async function addNewDocumentPrompt(collectionName) {            
+
+        async function addNewDocumentPrompt(collectionName) {
             event.preventDefault();
-            // Use prompt to get key and value for the new document
             const key = prompt('Enter Key:');
             const value = prompt('Enter Value:');
-            if (key === null || value === null) return false; // User clicked Cancel
-
-            // Perform the AJAX request to add the new document
+            if (key === null || value === null) return false;
             const response = await fetch(`/add_new_document/${collectionName}`, {
                 method: 'POST',
                 headers: {
@@ -89,67 +78,51 @@
                 body: JSON.stringify({ key, value }),
             });
             const result = await response.json();
-
-            // Check if the server indicates to refresh the page
             if (result.redirect_url) {
-                // Redirect to the specified URL
                 window.location.href = result.redirect_url;
             }
-
-            return false;  // Prevent the form from submitting conventionally
+            return false;
         }
         async function addKeyValuePairPopup(form) {
             event.preventDefault();
-            // Use prompt to get collection name, key, and value from the user
             console.log("addKeyValuePairPopup triggered");
             const key = prompt('Enter Key:');
             const value = prompt('Enter Value:');
-            if (key === null || value === null) return false; // User clicked Cancel
-
-            // Create a FormData object and append key and value
+            if (key === null || value === null) return false;
             const formData = new FormData(form);
             formData.set('key', key);
             formData.set('value', value);
             console.log(key)
             console.log(value)
-
-            // Perform the AJAX request to add the key-value pair
             const response = await fetch(form.action, {
                 method: form.method,
                 body: formData,
             });
             const result = await response.json();
 
-            // Check if the server indicates to refresh the page
             if (result.redirect_url) {
-                // Redirect to the specified URL
                 window.location.href = result.redirect_url;
             }
-
-            return false;  // Prevent the form from submitting conventionally
+            return false;
         }
 
         async function deleteDocumentAndRefresh(form, event) {
-            event.preventDefault();  // Prevent the form from submitting conventionally
+            event.preventDefault();
 
             const response = await fetch(form.action, {
-                method: 'DELETE',  // Explicitly set the method to DELETE
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({}),
             });
-
             const result = await response.json();
-
-            // Check if the server indicates to refresh the page
             if (result.redirect_url) {
-                // Redirect to the specified URL
                 window.location.href = result.redirect_url;
             }
-
             return false;
         }
+
         async function deleteCollectionAndRefresh(form) {
             event.preventDefault();
             const response = await fetch(form.action, {
@@ -159,17 +132,14 @@
                 },
                 body: JSON.stringify({}),
             });
-
             const result = await response.json();
-
-            // Check if the server indicates to refresh the page
             if (result.redirect_url) {
-                // Redirect to the specified URL
                 window.location.href = result.redirect_url;
             }
 
-            return false;  // Prevent the form from submitting conventionally
+            return false;
         }
+
         async function deleteKeyValuePair(collection_name, document_id, key_to_delete) {
             event.preventDefault();
             const confirmDelete = confirm(`Are you sure you want to delete the key '${key_to_delete}' from the document?`);
@@ -177,7 +147,7 @@
             if (!confirmDelete) {
                 return;
             }
-// TODO Add the confirming everywhere!
+            // TODO Add the confirming everywhere!
             const response = await fetch(`/delete_key_value/${collection_name}/${document_id}`, {
                 method: 'DELETE',
                 headers: {
@@ -185,16 +155,11 @@
                 },
                 body: JSON.stringify({ 'keyToDelete': key_to_delete }),
             });
-
             const result = await response.json();
-
-            // Check if the server indicates to refresh the page
             if (result.redirect_url) {
-                // Redirect to the specified URL
                 window.location.href = result.redirect_url;
             }
         }
     </script>
 </body>
-
 </html>
