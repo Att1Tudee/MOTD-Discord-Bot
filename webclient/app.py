@@ -18,11 +18,9 @@ async def index():
 @app.route('/create_collection/<collection_name>', methods=['POST'])
 async def create_collection(collection_name):
     try:
-        # Validate if the provided collection_name is a valid ObjectId
         ObjectId(collection_name)
         return jsonify({'error': 'Collection name cannot be a valid ObjectId'})
     except Exception:
-        # If it's not a valid ObjectId, proceed to create the collection
         db = db_helper.db
         if collection_name not in await db.list_collection_names():
             await db.create_collection(collection_name)
@@ -34,32 +32,19 @@ async def create_collection(collection_name):
 @app.route('/add_new_document/<collection_name>', methods=['POST'])
 async def add_new_document(collection_name):
     try:
-        # Get key and value from the request's JSON data
         data = await request.get_json()
         key = data.get('key')
         value = data.get('value')
-    
-        # Validate that both key and value are provided
         if not key or not value:
             return jsonify({'error': 'Key and value are required'})
-        
-        # Get the MongoDB collection for the specified collection_name
         collection = db_helper.db[collection_name]
-
-        # Create a new document with the provided key and value
         new_document = {key: value}
-        
-        # Insert the new document into the collection
         result = await collection.insert_one(new_document)
-
-        # Check if the document was successfully inserted
         if result.inserted_id:
             return jsonify({'success': 'New document added successfully', 'redirect_url': url_for('index')})
-
         return jsonify({'error': 'Failed to add a new document'})
     except Exception as e:
         return jsonify({'error': str(e)})
-
 
 @app.route('/add_key_value/<collection_name>/<document_id>', methods=['POST'])
 async def add_key_value(collection_name, document_id):
@@ -68,17 +53,13 @@ async def add_key_value(collection_name, document_id):
     except Exception as e:
         print("Error converting document_id to ObjectId:", str(e))
         return jsonify({'error': 'Invalid document_id'})
-
     form_data = await request.form
     key = form_data.get('key')
     value = form_data.get('value')
-
     print(f"Received data: collection_name={collection_name}, document_id={document_id}, key={key}, value={value}")
-
     if key and value:
         collection = db_helper.db[collection_name]
         existing_document = await collection.find_one({'_id': document_id})
-
         if existing_document:
             await collection.update_one(
                 {'_id': document_id},
@@ -93,6 +74,25 @@ async def add_key_value(collection_name, document_id):
             return jsonify({'error': 'Document not found'})
     else:
         return jsonify({'error': 'Invalid parameters'})
+        
+@app.route('/edit_value/<string:collection_name>/<string:document_id>', methods=['PUT'])
+async def edit_value(collection_name, document_id):
+    try:
+        data = await request.get_json()
+        key_to_edit = data.get('keyToEdit')
+        new_value = data.get('newValue')
+        collection = db_helper.db[collection_name]
+        document_id = ObjectId(document_id)
+        query = {'_id': document_id}
+        document = await collection.find_one(query)
+        if document and key_to_edit in document:
+            update_query = {'_id': document_id}
+            update_data = {'$set': {key_to_edit: new_value}}
+            await collection.update_one(update_query, update_data)
+            return jsonify({'redirect_url': url_for('index')})
+        return jsonify({'error': 'Document or key not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/delete_document/<guild_id>/<document_id>', methods=[ 'DELETE'])
 async def delete_document(guild_id, document_id):
@@ -117,7 +117,6 @@ async def delete_key_value(collection_name, document_id):
     except Exception as e:
         print("Error converting document_id to ObjectId:", str(e))
         return jsonify({'error': 'Invalid document_id'})
-
     form_data = await request.get_json()
     key_to_delete = form_data.get('keyToDelete')
     collection = db_helper.db[collection_name]
@@ -135,7 +134,6 @@ async def delete_key_value(collection_name, document_id):
 @app.route('/delete_collection/<collection_name>', methods=['POST'])
 async def delete_collection(collection_name):
     await db_helper.db.drop_collection(collection_name)
-    
     redirect_url = url_for('index')
     print("Collection Deleted:", collection_name)  
     return jsonify({'redirect_url': redirect_url})

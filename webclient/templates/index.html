@@ -9,7 +9,8 @@
 </head>
 
 <body>
-    <p> This is webclient for MOTD bot database editing. You can modify the values with your own risk. Don't use special marks with posts. </p>
+    <p> This is webclient for MOTD bot database editing. You can modify the values with your own risk. Don't use special
+        marks with posts. </p>
     <div class="container">
         <button onclick="createCollectionPrompt()">Create New Collection</button>
         {% for collection_name, documents in all_docs.items() %}
@@ -32,6 +33,10 @@
                 <button
                     onclick="deleteKeyValuePair('{{ collection_name }}', '{{ document['_id'] }}', '{{ key }}')">Delete
                     Key-Value Pair</button>
+                <button
+                    onclick="editValuePrompt('{{ collection_name }}', '{{ document['_id'] }}', '{{ key }}', '{{ value }}')">Edit
+                    Value</button>
+
                 <br>
                 {% endfor %}
                 <form action="{{ url_for('delete_document', guild_id=collection_name, document_id=document['_id']) }}"
@@ -160,6 +165,24 @@
                 window.location.href = result.redirect_url;
             }
         }
+        async function editValuePrompt(collectionName, documentId, key, currentValue) {
+            event.preventDefault();
+            const newValue = prompt(`Edit Value for key '${key}':`, currentValue);
+            if (newValue === null) return false;
+            const response = await fetch(`/edit_value/${collectionName}/${documentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 'keyToEdit': key, 'newValue': newValue }),
+            });
+            const result = await response.json();
+            if (result.redirect_url) {
+                window.location.href = result.redirect_url;
+            }
+            return false;
+        }
     </script>
 </body>
+
 </html>
