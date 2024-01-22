@@ -12,11 +12,12 @@ h1 {
 
 .container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
     gap: 2%;
 }
 
 .collection {
+    display: flexbox;
     background-color: #444;
     border: 1px solid #555;
     padding: 2%;
@@ -34,19 +35,36 @@ h1 {
 .action-button {
     background-color: #4CAF50;
     color: #fff;
-    display: flex;
+    display: float;
     margin-bottom: 3%;
+    margin-top: 3%;
     justify-content: space-between; 
     border: none;
-    padding: 1% 2%;
+    padding: 1% 3%;
     text-align: center;
     text-decoration: none;
     font-size: large;
     cursor: pointer;
     border-radius: 4px;
-    margin-right: 1%; /* Adjusted margin */
+    margin-right: 1%;
 }
-
+.action-button-large {
+    min-height: 50px;
+    max-height: 50px;
+    background-color: #4CAF50;
+    color: #fff;
+    display: float;
+    margin-bottom: 3%;
+    justify-content: space-between; 
+    border: none;
+    padding: 2%;
+    text-align: center;
+    text-decoration: none;
+    font-size: large;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-right: 1%;
+}
 .document-list {
     list-style-type: none;
     padding: 0;
