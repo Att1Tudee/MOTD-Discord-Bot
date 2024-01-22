@@ -1,22 +1,35 @@
 # app.py
+import logging
 from quart import Quart, make_response, render_template, request, jsonify, url_for, redirect
 from dbhelper import Dbhelper
 from bson import ObjectId
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Quart(__name__)
 db_helper = Dbhelper()
 
+async def log_request_info():
+    logger.info(f"Request received: {request.method} {request.url}")
+
 @app.route('/')
 async def index():
-    collection_names = await db_helper.db.list_collection_names()
-    all_docs = {}
-    for collection_name in collection_names:
-        documents = await db_helper.db[collection_name].find().to_list(length=100)
-        all_docs[collection_name] = documents
-    return await render_template('index.html', all_docs=all_docs)
+    await log_request_info()
+    try:
+        collection_names = await db_helper.db.list_collection_names()
+        all_docs = {}
+        for collection_name in collection_names:
+            documents = await db_helper.db[collection_name].find().to_list(length=100)
+            all_docs[collection_name] = documents
+        return await render_template('index.html', all_docs=all_docs)
+    except Exception as e:
+        logger.exception(f"An error occurred in 'index' route: {str(e)}")
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 @app.route('/create_collection/<collection_name>', methods=['POST'])
 async def create_collection(collection_name):
+    await log_request_info()
     try:
         ObjectId(collection_name)
         return jsonify({'error': 'Collection name cannot be a valid ObjectId'})
@@ -31,6 +44,7 @@ async def create_collection(collection_name):
 
 @app.route('/add_new_document/<collection_name>', methods=['POST'])
 async def add_new_document(collection_name):
+    await log_request_info()
     try:
         data = await request.get_json()
         key = data.get('key')
@@ -44,19 +58,21 @@ async def add_new_document(collection_name):
             return jsonify({'success': 'New document added successfully', 'redirect_url': url_for('index')})
         return jsonify({'error': 'Failed to add a new document'})
     except Exception as e:
-        return jsonify({'error': str(e)})
+        logger.exception(f"An error occurred in 'add_new_document' route: {str(e)}")
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 @app.route('/add_key_value/<collection_name>/<document_id>', methods=['POST'])
 async def add_key_value(collection_name, document_id):
+    await log_request_info()
     try:
         document_id = ObjectId(document_id)
     except Exception as e:
-        print("Error converting document_id to ObjectId:", str(e))
+        logger.error(f"Error converting document_id to ObjectId: {str(e)}")
         return jsonify({'error': 'Invalid document_id'})
     form_data = await request.form
     key = form_data.get('key')
     value = form_data.get('value')
-    print(f"Received data: collection_name={collection_name}, document_id={document_id}, key={key}, value={value}")
+    logger.info(f"Received data: collection_name={collection_name}, document_id={document_id}, key={key}, value={value}")
     if key and value:
         collection = db_helper.db[collection_name]
         existing_document = await collection.find_one({'_id': document_id})
@@ -77,6 +93,7 @@ async def add_key_value(collection_name, document_id):
         
 @app.route('/edit_value/<string:collection_name>/<string:document_id>', methods=['PUT'])
 async def edit_value(collection_name, document_id):
+    await log_request_info()
     try:
         data = await request.get_json()
         key_to_edit = data.get('keyToEdit')
@@ -92,14 +109,16 @@ async def edit_value(collection_name, document_id):
             return jsonify({'redirect_url': url_for('index')})
         return jsonify({'error': 'Document or key not found'}), 404
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.exception(f"An error occurred in 'edit_value' route: {str(e)}")
+        return jsonify({'error': 'Internal Server Error'}), 500
 
-@app.route('/delete_document/<guild_id>/<document_id>', methods=[ 'DELETE'])
+@app.route('/delete_document/<guild_id>/<document_id>', methods=['DELETE'])
 async def delete_document(guild_id, document_id):
+    await log_request_info()
     try:
         document_id = ObjectId(document_id)
     except Exception as e:
-        print("Error converting document_id to ObjectId:", str(e))
+        logger.error(f"Error converting document_id to ObjectId: {str(e)}")
         return jsonify({'error': 'Invalid document_id'})
     collection = db_helper.db[guild_id]
     existing_document = await collection.find_one({'_id': document_id})
@@ -112,10 +131,11 @@ async def delete_document(guild_id, document_id):
 
 @app.route('/delete_key_value/<collection_name>/<document_id>', methods=['DELETE'])
 async def delete_key_value(collection_name, document_id):
+    await log_request_info()
     try:
         document_id = ObjectId(document_id)
     except Exception as e:
-        print("Error converting document_id to ObjectId:", str(e))
+        logger.error(f"Error converting document_id to ObjectId: {str(e)}")
         return jsonify({'error': 'Invalid document_id'})
     form_data = await request.get_json()
     key_to_delete = form_data.get('keyToDelete')
@@ -126,17 +146,22 @@ async def delete_key_value(collection_name, document_id):
             {'_id': document_id},
             {'$unset': {key_to_delete: 1}}
         )
-        print(f"Key-Value Pair '{key_to_delete}' Deleted from Collection {collection_name} for document {document_id}")
+        logger.info(f"Key-Value Pair '{key_to_delete}' Deleted from Collection {collection_name} for document {document_id}")
         return jsonify({'redirect_url': url_for('index')})
     else:
         return jsonify({'error': 'Document or Key not found'})
 
 @app.route('/delete_collection/<collection_name>', methods=['POST'])
 async def delete_collection(collection_name):
-    await db_helper.db.drop_collection(collection_name)
-    redirect_url = url_for('index')
-    print("Collection Deleted:", collection_name)  
-    return jsonify({'redirect_url': redirect_url})
+    await log_request_info()
+    try:
+        await db_helper.db.drop_collection(collection_name)
+        redirect_url = url_for('index')
+        logger.info(f"Collection Deleted: {collection_name}")
+        return jsonify({'redirect_url': redirect_url})
+    except Exception as e:
+        logger.exception(f"An error occurred in 'delete_collection' route: {str(e)}")
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
