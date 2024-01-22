@@ -23,7 +23,7 @@
             <li>
                 <form
                     action="{{ url_for('add_key_value', collection_name=collection_name, document_id=document['_id']) }}"
-                    method="post" onsubmit="return addKeyValuePairPopup(this)">
+                    method="post" onsubmit="return addKeyValuePair(this)">
                     <button type="submit">Add Key-Value Pair</button>
                 </form>
                 {% for key, value in document.items() %}
@@ -83,9 +83,8 @@
             }
             return false;
         }
-        async function addKeyValuePairPopup(form) {
+        async function addKeyValuePair(form) {
             event.preventDefault();
-            console.log("addKeyValuePairPopup triggered");
             const key = prompt('Enter Key:');
             const value = prompt('Enter Value:');
             if (key === null || value === null) return false;

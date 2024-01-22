@@ -38,10 +38,7 @@ async def add_new_document(collection_name):
         data = await request.get_json()
         key = data.get('key')
         value = data.get('value')
-        print(key)
-        print(value)
-        print(collection_name)
-        
+    
         # Validate that both key and value are provided
         if not key or not value:
             return jsonify({'error': 'Key and value are required'})
