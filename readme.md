@@ -1,38 +1,3 @@
-Discord message of the day bot runtime.
-
-Set up 
-
-
-What you need
-
-You need to have mongoDB database access, it's free to use
-https://www.mongodb.com/cloud/atlas/register
-
-You need to have discordbot to use, register one in 
-https://discord.com/developers/applications
-
-You need discord server where you can invite the bot in, and both bot and you need manage messages permission
-
-You need Docker installed at computer where you run the bot
-
-create .env file with these information. Put the .env file inside both discordbot and webclient folders. 
-TOKEN="<discord-bot-token>"
-MONGODB="<mongodb-connection-string>"
-DATABASE="data"
-
-
-docker compose up in discordbot folder
-your own discordbot should come online
-Type !setchannel in desired channel where you want the bot to operate. To command the bot you must have rights to manage messages 
-
-docker compose up in webclient folder
-http://localhost:5000/ in browser and webclient should work with your MongoDB database
-
-
-
-
-
-
 # Discord Message of the Day Bot Setup Guide
 
 ## Prerequisites
