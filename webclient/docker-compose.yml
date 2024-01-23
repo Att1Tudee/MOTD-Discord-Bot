@@ -1,0 +1,7 @@
+version: '3'
+services:
+  quart_app:
+    build:
+      context: .
+    network_mode: host
+
